@@ -6,7 +6,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * 线程通信
- * 主线程和子线程分别打印 100次 和 10次，循环50次
+ * 主线程和子线程分别打印 5次 和 10次，循环30次
  * 改写成使用 Condition 的方式
  */
 public class ConditionTest2 {
@@ -16,13 +16,13 @@ public class ConditionTest2 {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                for (int i = 1; i <= 50; i++) {
+                for (int i = 1; i <= 30; i++) {
                     buiness.sub(i);
                 }
             }
         }).start();
 
-        for (int i = 1; i <= 50; i++) {
+        for (int i = 1; i <= 30; i++) {
             buiness.main(i);
         }
     }
@@ -48,8 +48,8 @@ public class ConditionTest2 {
                         e.printStackTrace();
                     }
                 }
-                for (int i = 1; i <= 100; i++) {
-                    System.out.println("main thread print " + i + " loop of " + j);
+                for (int i = 1; i <= 5; i++) {
+                    System.out.println("11111 main thread print " + i + " loop of " + j);
                 }
                 isShouldSub = true;
                 condition.signal();
@@ -64,18 +64,18 @@ public class ConditionTest2 {
             try {
                 while (!isShouldSub) {
                     try {
-                        condition.await();
 //                    this.wait();//传统的线程通信方式
+                        condition.await();
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
                 for (int i = 1; i <= 10; i++) {
-                    System.out.println("sub thread print " + i + " loop of " + j);
+                    System.out.println("22222  sub thread print " + i + " loop of " + j);
                 }
                 isShouldSub = false;
-                condition.signal();
 //            this.notify();//传统的线程通信方式
+                condition.signal();
             } finally {
                 lock.unlock();
             }

@@ -8,17 +8,13 @@ import java.util.UUID;
 public class Demo {
 
     public static void main(String[] args) {
-        System.out.println("hallo world");
 
 
-        UUID uuid = UUID.randomUUID();
-        System.out.println("uuid=" + uuid.toString());
-        uuid = UUID.nameUUIDFromBytes("abc".getBytes());
-        System.out.println("uuid   abc=" + uuid.toString());
-        uuid = UUID.nameUUIDFromBytes("abcd".getBytes());
-        System.out.println("uuid   abc=" + uuid.toString());
-        uuid = UUID.nameUUIDFromBytes("abcd".getBytes());
-        System.out.println("uuid   abc=" + uuid.toString());
+        for (int i = 1; i < 10; i++) {
+            System.out.println("i"+i+" "+10%i);
+        }
+
+
     }
 
     public static boolean isEmpty(CharSequence str) {

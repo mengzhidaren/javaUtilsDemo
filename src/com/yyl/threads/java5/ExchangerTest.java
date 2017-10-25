@@ -14,7 +14,7 @@ public class ExchangerTest {
 
     public static void main(String[] args) {
         ExecutorService service = Executors.newCachedThreadPool();
-        final Exchanger exchanger = new Exchanger();
+        final Exchanger<String> exchanger = new Exchanger();
         service.execute(new Runnable() {//A
             public void run() {
                 try {
@@ -22,7 +22,7 @@ public class ExchangerTest {
                     String data1 = "张三";
                     System.out.println("线程A    " + Thread.currentThread().getName() + "正在把数据'" + data1 + "'换出去");
                     Thread.sleep((long) (Math.random() * 10000));
-                    String data2 = (String) exchanger.exchange(data1);//阻塞在这里等线程B  执行交换数据
+                    String data2 = exchanger.exchange(data1);//阻塞在这里等线程B  执行交换数据
                     System.out.println("线程A    " + Thread.currentThread().getName() + "换回的数据为'" + data2 + "'");
                 } catch (Exception e) {
 
@@ -35,8 +35,36 @@ public class ExchangerTest {
                     String data1 = "李四";
                     System.out.println("线程B    " + Thread.currentThread().getName() + "正在把数据'" + data1 + "'换出去");
                     Thread.sleep((long) (Math.random() * 10000));
-                    String data2 = (String) exchanger.exchange(data1);///阻塞在这里等线程A    执行交换数据
+
+                    String data2 = exchanger.exchange(null);///阻塞在这里等线程A    执行交换数据
                     System.out.println("线程B    " + Thread.currentThread().getName() + "换回的数据为'" + data2 + "'");
+                } catch (Exception e) {
+
+                }
+            }
+        });
+
+        service.execute(new Runnable() {//c
+            public void run() {
+                try {
+                    String data1 = "王五";
+                    System.out.println("线程C    " + Thread.currentThread().getName() + "正在把数据'" + data1 + "'换出去");
+                    Thread.sleep((long) (Math.random() * 10000));
+                    String data2 =exchanger.exchange("王五");///阻塞在这里等线程A    执行交换数据
+                    System.out.println("线程C    " + Thread.currentThread().getName() + "换回的数据为'" + data2 + "'");
+                } catch (Exception e) {
+
+                }
+            }
+        });
+        service.execute(new Runnable() {//c
+            public void run() {
+                try {
+                    String data1 = "六六";
+                    System.out.println("线程D    " + Thread.currentThread().getName() + "正在把数据'" + data1 + "'换出去");
+                    Thread.sleep((long) (Math.random() * 10000));
+                    String data2 = exchanger.exchange("六六");///阻塞在这里等线程A    执行交换数据
+                    System.out.println("线程D    " + Thread.currentThread().getName() + "换回的数据为'" + data2 + "'");
                 } catch (Exception e) {
 
                 }

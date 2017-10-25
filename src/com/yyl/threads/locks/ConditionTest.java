@@ -14,7 +14,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * <p>
  * Condition 将 Object 监视器方法（wait、notify 和 notifyAll）分解成截然不同的对象，以便通过将这些对象与任意 Lock 实现组合使用，
  * 为每个对象提供多个等待 set（wait-set）。其中，Lock 替代了 synchronized 方法和语句的使用，Condition 替代了 Object 监视器方法的使用。
- * Condition实例实质上被绑定到一个锁上。要为特定 Lock 实例获得 Condition 实例，请使用其 newCondition() 方法。
+ * Condition实例实质上被绑定到一个锁上。要为特定 Lock 实例获得 Condition 实例，请使用其 new Condition() 方法。
  * <p>
  * 在java5中，一个锁可以有多个条件，每个条件上可以有多个线程等待，通过调用await()方法，可以让线程在该条件下等待。当调用signalAll()方法，又可以唤醒该条件下的等待的线程。
  * <p>
