@@ -1,7 +1,5 @@
 package com.yyl;
 
-import java.util.UUID;
-
 /**
  * Created by Administrator on 2017/4/27/027.
  */
