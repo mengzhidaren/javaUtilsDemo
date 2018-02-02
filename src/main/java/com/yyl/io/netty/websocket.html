@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NettyTest</title>
+    <script type="text/javascript">
+        var socket;
+
+        if (!window.WebSocket) {
+            window.WebSocket = window.MozWebSocket;
+        }
+        if (window.WebSocket) {
+            socket = new WebSocket("ws://localhost:8888/websocket");
+            socket.onmessage = function (event) {
+                var ta = document.getElementById('responseContent')
+                ta.value += event.data + "\r\n";
+            }
+            socket.onopen = function (event) {
+                var ta = document.getElementById('responseContent')
+                ta.value = "你当前的浏览器支持webSocket请说话\r\n";
+            }
+            socket.onclose = function (event) {
+                var ta = document.getElementById('responseContent')
+                ta.value = "";
+                ta.value = "webSocket连接已经关闭\r\n";
+            }
+        } else {
+            alert("你的浏览器不支持webSocket")
+        }
+
+        function send(message) {
+            if (!window.WebSocket) {
+                return
+            }
+            if (socket.readyState == WebSocket.OPEN) {
+                socket.send(message);
+            } else {
+                alert("WebSocket没有连接成功")
+            }
+
+        }
+
+    </script>
+
+</head>
+<body>
+
+<form onsubmit="return false">
+    <input type="text" name="myContent" value=""/>
+    <br/><br/>
+    <input type="button" onclick="send(this.form.myContent.value)" value="发送websocket请求消息"/>
+    <hr color="red"/>
+    <h2>客</h2>
+    <textarea id="responseContent" style="width: 500px;height: 300px"></textarea>
+</form>
+
+</body>
+</html>
