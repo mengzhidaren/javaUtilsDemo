@@ -37,7 +37,7 @@ import java.net.*;
  * Datagram:使用UDP协议，将数据保存在用户数据报中，通过网络进行通信。
  */
 public class ProtocolDemo {
-
+transient float demo=1.1f;
     //InetAddress类用于标识网络上的硬件资源，标识互联网协议(IP)地址。
     public void test1() throws UnknownHostException {
         //获取本机的InetAddress实例

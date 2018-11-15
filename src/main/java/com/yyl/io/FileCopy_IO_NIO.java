@@ -40,7 +40,7 @@ import java.nio.channels.FileChannel;
 public class FileCopy_IO_NIO {
 
 
-    public static void fileCopy(String source, String target) throws IOException {
+    public static void fileIOCopy(String source, String target) throws IOException {
         try (InputStream in = new FileInputStream(source)) {
             try (OutputStream out = new FileOutputStream(target)) {
                 byte[] buffer = new byte[4096];
