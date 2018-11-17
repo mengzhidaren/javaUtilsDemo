@@ -1,4 +1,19 @@
 #JAVA基础
+##### JDK和JRE的区别是什么
+```
+JDK，开发java程序用的开发包，JDK里面有java的运行环境(JRE)，包括client和server端的。需要配置环境变量。。。。
+JRE，运行java程序的环境，JVM，JRE里面只有client运行环境，安装过程中，会自动添加PATH
+jdk的bin下有各种java程序需要用到的命令，与jre的bin目录最明显的区别就是jdk下才有javac，这一点很好理解，
+因为 jre只是一个运行环境而已。与开发无关
+
+JVM（Java Virtual Machine），即java虚拟机, java运行时的环境，JVM是一种用于计算设备的规范，它是一个虚构出来的计算机，
+是通过在实际的计算机上仿真模拟各种计算机功能来实现的。针对java用户，也就是拥有可运行的.class文件包（jar或者war）的用户。
+里面主要包含了jvm和java运行时基本类库（rt.jar）。rt.jar可以简单粗暴地理解为：它就是java源码编译成的jar包
+
+JRE和JVM区别：JVM并不代表就可以执行class了，JVM执行.class还需要JRE下的lib类库的支持，尤其是rt.jar。
+
+```
+
 #####equals与==的区别  
 
 ````

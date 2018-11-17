@@ -1,6 +1,4 @@
-谈谈对Volley的理解
 
-HttpUrlConnection 和 okhttp关系
 
 ####looper架构
 ````$xslt
@@ -13,8 +11,9 @@ Android为什么要设计只能通过Handler机制更新UI呢？
 
 Handler封装了消息的发送（主要包括消息发送给谁（一般是发送给handler自己）） 
 Looper 
-内部包含一个消息队列也就是MessageQueue，所有的Handler发送的消息都走向这个消息队列 
-Looper.Looper方法，就是一个死循环，不断的从MessageQueue取消息，如果有消息就处理消息，没有消息就阻塞
+    内部包含一个消息队列也就是MessageQueue，所有的Handler发送的消息都走向这个消息队列 
+Looper.Looper方法，
+    就是一个死循环，不断的从MessageQueue取消息，如果有消息就处理消息，没有消息就阻塞
 
 MessageQueue，就是一个消息队列，可以添加消息，并处理消息
 
@@ -101,43 +100,68 @@ Android中的IPC方式
     Socket也称为“套接字”，是网络通信中的概念，它分为流式套接字和用户数据套接字两种，分别应于网络的传输控制层中的TCP和UDP协议。
 
 ```
+###### RPC框架
+```
+RPC——Remote Procedure Call Protocol，这是广义上的解释，远程过程调用
+RPC:远程过程调用。RPC的核心并不在于使用什么协议。RPC的目的是让你在本地调用远程的方法，而对你来说这个调用是透明的，
+你并不知道这个调用的方法是部署哪里。通过RPC能解耦服务，这才是使用RPC的真正目的。RPC的原理主要用到了动态代理模式，
+至于http协议，只是传输协议而已。简单的实现可以参考spring remoting，复杂的实现可以参考dubbo。
+
+RPC是一个软件结构概念，是构建分布式应用的理论基础
+RPC是一种概念，http也是RPC实现的一种方式。论复杂度，dubbo/hessian用起来是超级简单的
+```
 
 
 
+####ActivityThread，AMS，WMS的工作原理
 
-ActivityThread，AMS，WMS的工作原理
 
 ####ApplicationContext和ActivityContext的区别
+```
 这两者的生命周期是不同的，它们各自的使用场景不同，this.getApplicationContext()取的是这个应用程序的Context，
 它的生命周期伴随应用程序的存在而存在；而Activity.this取的是当前Activity的Context，它的生命周期则只能存活于当前Activity，
+```
 ####请介绍下ContentProvider 是如何实现数据共享的？
+```
 一个程序可以通过实现一个Content provider的抽象接口将自己的数据完全暴露出去，而且Content providers是以类似数据库中表的方式将数据暴露。
 Content providers存储和检索数据，通过它可以让所有的应用程序访问到，这也是应用程序之间唯一共享数据的方法
-####SpareArray原理
-它也是线程不安全的，允许value为null。
-````$xslt
-
-适用场景：
-数据量不大（千以内）
-空间比时间重要
-需要使用Map，且key为int类型。
+```
+######SpareArray原理
 ````
-####为什么不能在子线程更新UI？
+    它也是线程不安全的，允许value为null。
+适用场景：
+    数据量不大（千以内）
+    空间比时间重要
+    需要使用Map，且key为int类型。
+````
+######为什么不能在子线程更新UI？
 提高移动端更新UI的效率和和安全性，以此带来流畅的体验
-####LruCache默认缓存大小
+###### LruCache
+```
+LRU全称为Least Recently Used，最近最少使用，是一种缓存置换算法
+需要注意区分的是LRU和LFU。前者是最近最少使用，即淘汰最长时间未使用的对象；后者是最近最不常使用，即淘汰一段时间内使用最少的对象
+LruCache默认情况下缓存的大小是由值的数量决定，重写sizeOf计算不同的值
+LruCache不允许null作为一个key或value
+LruCache这个类是线程安全的。自动地执行多个缓存操作通过synchronized 同步缓存:
 
-####Android线程有没有上限？
+如果LruCache缓存的某条数据明确地需要被释放，可以覆写entryRemoved(...)
+如果LruCache缓存的某条数据通过key没有找到，可以覆写 create(K key)，
+    这简化了调用代码，即使错过一个缓存数据，也不会返回null，而会返回通过create(K key)创造的数据。
+如果想限制每条数据的缓存大小，可以覆写sizeOf(K key, V value)：
 
-####线程池有没有上限？
+trimToSize() 循环移除最近最少使用的数据直到剩余缓存数据的大小等于小于最大缓存大小。
+
+tip<可以当前一个封装过的LinkedHashMap 用来在内存里 存图片或者其它数据>
+```
+######Android线程有没有上限？
+
+######线程池有没有上限？
 
 
-#####Serializable 和Parcelable 的区别
+#######Serializable 和Parcelable 的区别
 两者最大的区别在于 存储媒介的不同，Serializable 使用 I/O 读写存储在硬盘上，而 Parcelable 是直接 在内存中读写。
 很明显，内存的读写速度通常大于 IO 读写，所以在 Android 中传递数据优先选择 Parcelable。
-
-
-
-#####AlertDialog,popupWindow,Activity区别
+######AlertDialog,popupWindow,Activity区别
 ````$xslt
 AlertDialog builder：用来提示用户一些信息,用起来也比较简单,设置标题类容 和按钮即可,如果是加载的自定义的view ,                                  调用 dialog.setView(layout);加载布局即可(其他的设置标题 类容 这些就不需要了)
 popupWindow：就是一个悬浮在Activity之上的窗口，可以用展示任意布局文件
@@ -150,34 +174,26 @@ PopupWindow弹出时，程序会等待，在PopupWindow退出前，程序一直�
 ````
 
 
-
-
-(->)Android动画原理
+######Android动画原理
+````
 Animation框架定义了透明度，旋转，缩放和位移几种常见的动画，而且控制的是整个View
 实现原理是每次绘制视图时View所在的ViewGroup中的drawChild函数获取该View的Animation的Transformation值
-然后调用canvas.concat(transformToApply.getMatrix())，通过矩阵运算完成动画帧，如果动画没有完成，继续调用invalidate()函数，启动下次绘制来驱动动画
+然后调用canvas.concat(transformToApply.getMatrix())，通过矩阵运算完成动画帧，如果动画没有完成，继续调用invalidate()函数，
+启动下次绘制来驱动动画
 动画过程中的帧之间间隙时间是绘制函数所消耗的时间，可能会导致动画消耗比较多的CPU资源，最重要的是，动画改变的只是显示，并不能相应事件
-
-
-
 
 逐帧动画(Drawable Animation)：播放一系列的图片来实现动画效果
 补间动画(Tween Animation)：它并不会改变View属性的值，只是改变了View的绘制的位置,一个按钮在动画过后，不在原来的位置，但是触发点击事件的仍然是原来的坐标
 属性动画(Property Animation)：动画的对象除了传统的View对象，还可以是Object对象，动画结束后，Object对象的属性值被实实在在的改变了
 
-
-
-
-
-(->)Dalvik虚拟机和JVM有什么区别
-Dalvik 基于寄存器，而 JVM 基于栈。基于寄存器的虚拟机对于更大的程序来说，在它们编译的时候，花费的时间更短。
-Dalvik执行.dex格式的字节码，而JVM执行.class格式的字节码
-
-(->)什么是Dalvik虚拟机
+````
+######什么是Dalvik虚拟机
 Dalvik虚拟机是Android平台的核心,它可以支持.dex格式的程序的运行
 .dex格式是专为Dalvik设计的一种压缩格式,可以减少整体文件尺寸,提高I/O操作的速度,适合内存和处理器速度有限的系统
-
-(->)Android为每个应用程序分配的内存大小是多少
+######Dalvik虚拟机和JVM有什么区别
+Dalvik 基于寄存器，而 JVM 基于栈。基于寄存器的虚拟机对于更大的程序来说，在它们编译的时候，花费的时间更短。
+Dalvik执行.dex格式的字节码，而JVM执行.class格式的字节码
+######Android为每个应用程序分配的内存大小是多少
 一般是16m或者24m,但是可以通过android:largeHeap申请更多内存
 
 
