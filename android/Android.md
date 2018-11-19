@@ -4,18 +4,13 @@ b：程序间互通消息(例如在自己的应用程序内监听系统来电)
 c：效率上(参考UDP的广播协议在局域网的方便性)
 d：设计模式上(反转控制的一种应用，类似监听者模式)
 
-
-######handler常见问题，机制，原理
-
-
-
 ######插件化（activity如何加载及资源处理）
 
 ######组件化
 
 ######热修复原理
 
-######httpclient httpurlconnect的区别和使用
+
 
 ######SharedPreferences的apply与commit的区别
 ````$xslt

@@ -475,9 +475,7 @@ HTTPS可以有效的防止运营商劫持，解决了防劫持的一个大问题
 3）HttpsSSL+HTTP协议构建的可进行加密传输、身份认证的网络协议要比Http协议安全
 4）Https协议需要到CA申请证书
 ```
-######HttpClient和HttpURLConnection的区别 
-在Android 2.2版本之前，HttpClient拥有较少的bug，因此使用它是最好的选择。
-而在Android 2.3版本及以后，HttpURLConnection则是最佳的选择。它的API简单，体积较小
+
 
 ######HTTP1.0与2.0的区别
 ```
@@ -605,3 +603,6 @@ HTTP 503：由于超载或停机维护，服务器目前无法使用，一段时
 
 
 
+######HttpClient和HttpURLConnection的区别 
+在Android 2.2版本之前，HttpClient拥有较少的bug，因此使用它是最好的选择。
+而在Android 2.3版本及以后，HttpURLConnection则是最佳的选择。它的API简单，体积较小
