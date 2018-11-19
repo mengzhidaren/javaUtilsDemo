@@ -206,24 +206,6 @@ MediaCodec： 是Android（api>=16）提供的一个多媒体硬解编码库，�
 ```
 
 
-###### 什么是YUV格式？
-```
-YUV，是一种颜色编码方法。Y表示明亮度，也就是灰度值。U和V则是色度、浓度，作用是描述影像色彩及饱和度，用于指定像素的颜色。
-主要用于电视系统以及模拟视频领域，它将亮度信息（Y）与色彩信息（UV）分离，没有UV信息一样可以显示完整的图像，显示出来将是黑白效果。
-```
-###### 什么是YUV420？什么是YUV420P？
-```
-YUV420是指：Y : UV = 4 : 1
-YUV420P是指：YUV的排列方式，先将Y排列完，再将U排列完，最后将
-V排列完。如：
-    YYYYYYYYYYYYYYYY UUUU VVVV
-    
-FFmpeg解码出来的视频YUV数据是存储在AVFrame中的data里面，我们以YUV420P为视频数据给OpenGL渲染。
-Y分量：frame->data[0]
-U分量：frame->data[1]
-V分量：frame->data[2]
-绝大多数视频都是YUV420P格式的，对于不是YUV420P格式的，我们先将其转换（sws_scale）为YUV420P后再给OpenGL渲染。
-```
 
 
 ######音视频同步方法：
@@ -246,6 +228,58 @@ V分量：frame->data[2]
         PTS = avFrame->pts * av_q2d(avStream->time_base);
     3、获取音视频PTS差值，根据差值来设置视频的睡眠时间达到和音频的相对同步。
         视频快了就休眠久点，视频慢了就休眠少点，来达到同步。
+
+跟距声音的时间 计算视频同步差值
+    double YVideo::getFrameDiffTime(AVFrame *avFrame, AVPacket *avPacket) {
+        double pts = 0;
+        if (avFrame != NULL) {
+            pts = av_frame_get_best_effort_timestamp(avFrame);
+        }
+        if (avPacket != NULL) {
+            pts = avPacket->pts;
+        }
+        if (pts == AV_NOPTS_VALUE) {
+            pts = 0;
+        }
+        pts *= av_q2d(time_base);
+    
+        if (pts > 0) {
+            clock = pts;
+        }
+    
+        double diff = audio->clock - clock;
+        return diff;
+    }
+跟距声音差值   延迟 渲染的时间
+    double YVideo::getDelayTime(double diff) {
+        if (diff > 0.003) {
+            delayTime = delayTime * 2 / 3;
+            if (delayTime < defaultDelayTime / 2) {
+                delayTime = defaultDelayTime * 2 / 3;
+            } else if (delayTime > defaultDelayTime * 2) {
+                delayTime = defaultDelayTime * 2;
+            }
+        } else if (diff < -0.003) {
+            delayTime = delayTime * 3 / 2;
+            if (delayTime < defaultDelayTime / 2) {
+                delayTime = defaultDelayTime * 2 / 3;
+            } else if (delayTime > defaultDelayTime * 2) {
+                delayTime = defaultDelayTime * 2;
+            }
+        } else if (diff == 0.003) {
+    
+        }
+        if (diff >= 0.5) {
+            delayTime = 0;
+        } else if (diff <= -0.5) {
+            delayTime = defaultDelayTime * 2;
+        }
+    
+        if (fabs(diff) >= 10) {
+            delayTime = defaultDelayTime;
+        }
+        return delayTime;
+    }
 
 ```
 ###### 视频seek功能
