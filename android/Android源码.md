@@ -1,6 +1,6 @@
 
 
-####looper架构
+####    looper架构
 ````$xslt
 Android为什么要设计只能通过Handler机制更新UI呢？ 
 最根本的目的就是解决多线程并发问题， 
@@ -19,7 +19,7 @@ MessageQueue，就是一个消息队列，可以添加消息，并处理消息
 
 
 ````
-######Intent和bundle在activity或fragment间进行通信，那么这个通信是如何实现的
+######  Intent和bundle在activity或fragment间进行通信，那么这个通信是如何实现的
 ````
 在系统启动时，PackageManagerService就会启动，PMS将解析所有已安装的应用信息，构建信息表，
 当用户通过Intent跳转到某个组件时，会根据Intent中包含的信息到PMS中查找对应的组件列表，最后跳转到目标组件当中
@@ -46,7 +46,7 @@ PMS的resolveIntent方法
 如果包名不为空，则直接根据包名来获取到对应的ActivityInfo对象，而mActivities就是PMS存储的activity信息表。
 
 ````
-######bindService、startService区别
+######  bindService、startService区别
 ````
 bindService参数多需要ServiceConnection  需要重写ServiceConnection的onServiceConnected方法
 startService不可以跨进程	bindService可以跨进程
@@ -113,20 +113,20 @@ RPC是一种概念，http也是RPC实现的一种方式。论复杂度，dubbo/h
 
 
 
-####ActivityThread，AMS，WMS的工作原理
+####    ActivityThread，AMS，WMS的工作原理
 
 
-####ApplicationContext和ActivityContext的区别
+####    ApplicationContext和ActivityContext的区别
 ```
 这两者的生命周期是不同的，它们各自的使用场景不同，this.getApplicationContext()取的是这个应用程序的Context，
 它的生命周期伴随应用程序的存在而存在；而Activity.this取的是当前Activity的Context，它的生命周期则只能存活于当前Activity，
 ```
-####请介绍下ContentProvider 是如何实现数据共享的？
+####    请介绍下ContentProvider 是如何实现数据共享的？
 ```
 一个程序可以通过实现一个Content provider的抽象接口将自己的数据完全暴露出去，而且Content providers是以类似数据库中表的方式将数据暴露。
 Content providers存储和检索数据，通过它可以让所有的应用程序访问到，这也是应用程序之间唯一共享数据的方法
 ```
-######SpareArray原理
+######  SpareArray原理
 ````
     它也是线程不安全的，允许value为null。
 适用场景：
@@ -134,7 +134,7 @@ Content providers存储和检索数据，通过它可以让所有的应用程序
     空间比时间重要
     需要使用Map，且key为int类型。
 ````
-######为什么不能在子线程更新UI？
+######  为什么不能在子线程更新UI？
 提高移动端更新UI的效率和和安全性，以此带来流畅的体验
 ###### LruCache
 ```
@@ -153,13 +153,13 @@ trimToSize() 循环移除最近最少使用的数据直到剩余缓存数据的�
 
 tip<可以当前一个封装过的LinkedHashMap 用来在内存里 存图片或者其它数据>
 ```
-######Android线程有没有上限？线程池有没有上限？
+######  Android线程有没有上限？线程池有没有上限？
 线程池尽量合适，比如常用的最佳算法是如果CPU是N核，则池大小是N/N+1，线程池线程太多会造成频繁的上下文切换/ 
 
-#######Serializable 和Parcelable 的区别
+####### Serializable 和Parcelable 的区别
 两者最大的区别在于 存储媒介的不同，Serializable 使用 I/O 读写存储在硬盘上，而 Parcelable 是直接 在内存中读写。
 很明显，内存的读写速度通常大于 IO 读写，所以在 Android 中传递数据优先选择 Parcelable。
-######AlertDialog,popupWindow,Activity区别
+######  AlertDialog,popupWindow,Activity区别
 ````$xslt
 AlertDialog builder：用来提示用户一些信息,用起来也比较简单,设置标题类容 和按钮即可,如果是加载的自定义的view ,                                  调用 dialog.setView(layout);加载布局即可(其他的设置标题 类容 这些就不需要了)
 popupWindow：就是一个悬浮在Activity之上的窗口，可以用展示任意布局文件
@@ -172,7 +172,7 @@ PopupWindow弹出时，程序会等待，在PopupWindow退出前，程序一直�
 ````
 
 
-######Android动画原理
+######  Android动画原理
 ````
 Animation框架定义了透明度，旋转，缩放和位移几种常见的动画，而且控制的是整个View
 实现原理是每次绘制视图时View所在的ViewGroup中的drawChild函数获取该View的Animation的Transformation值
@@ -185,13 +185,13 @@ Animation框架定义了透明度，旋转，缩放和位移几种常见的动�
 属性动画(Property Animation)：动画的对象除了传统的View对象，还可以是Object对象，动画结束后，Object对象的属性值被实实在在的改变了
 
 ````
-######什么是Dalvik虚拟机
+######  什么是Dalvik虚拟机
 Dalvik虚拟机是Android平台的核心,它可以支持.dex格式的程序的运行
 .dex格式是专为Dalvik设计的一种压缩格式,可以减少整体文件尺寸,提高I/O操作的速度,适合内存和处理器速度有限的系统
-######Dalvik虚拟机和JVM有什么区别
+######  Dalvik虚拟机和JVM有什么区别
 Dalvik 基于寄存器，而 JVM 基于栈。基于寄存器的虚拟机对于更大的程序来说，在它们编译的时候，花费的时间更短。
 Dalvik执行.dex格式的字节码，而JVM执行.class格式的字节码
-######Android为每个应用程序分配的内存大小是多少
+######  Android为每个应用程序分配的内存大小是多少
 一般是16m或者24m,但是可以通过android:largeHeap申请更多内存
 
 

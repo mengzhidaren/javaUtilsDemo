@@ -93,9 +93,6 @@ HTTP消息报头包括
     响应报头、
     实体报头
 ```
-
-
-
 #######  HTTP之请求消息Request
 ````
 客户端发送一个HTTP请求到服务器的请求消息包括以下格式：
@@ -154,7 +151,6 @@ Content-Type: text/html; charset=UTF-8
 1. 请求行   
 格式为： Method Request-URI HTTP-Version 结尾符    
         结尾符一般用\r\n
-
 
 2. 请求头
 通用报头
@@ -346,7 +342,7 @@ HTTP定义了3种缓存机制：
 3）Invalidation：在另一个请求通过缓存的时候，常常有一个副作用。例如，如果一个URL关联到一个缓存回应，
                 但是其后跟着POST、PUT和DELETE的请求的话，缓存就会过期。
 ````
-###### 断点续传的实现原理
+###### 断点续传的实现原理  多线程下载的原理
 ```
 HTTP协议的GET方法，支持只请求某个资源的某一部分；
 206 Partial Content 部分内容响应；
@@ -356,17 +352,14 @@ Content-Range 响应的资源范围；
 分块请求资源实例：
 Eg1：Range: bytes=306302- ：请求这个资源从306302个字节到末尾的部分；
 Eg2：Content-Range: bytes 306302-604047/604048：响应中指示携带的是该资源的第306302-604047的字节，该资源共604048个字节；
-客户端通过并发的请求相同资源的不同片段，来实现对某个资源的并发分块下载。从而达到快速下载的目的。目前流行的FlashGet和迅雷基本都是这个原理。
-```
-###### 多线程下载的原理
-```
+客户端通过并发的请求相同资源的不同片段，来实现对某个资源的并发分块下载。从而达到快速下载的目的。
+目前流行的FlashGet和迅雷基本都是这个原理。
+
+多线程下载:
 下载工具开启多个发出HTTP请求的线程；
 每个http请求只请求资源文件的一部分：Content-Range: bytes 20000-40000/47000；
 合并每个线程下载的文件。
 ```
-
-
-
 ######Socket原理
 流套接字（streamsocket） ：基于 TCP协议，采用 流的方式 提供可靠的字节流服务\
 数据报套接字(datagramsocket)：基于 UDP协议，采用 数据报文 提供数据打包发送的服务
@@ -380,9 +373,10 @@ HTTP协议 属于 应用层，解决的是如何包装数据\
 3.对用户来说，只需调用Socket去组织数据，以符合指定的协议，即可通信\
 ```
 ######TCP三次握手
+````
 首先Client端发送连接请求报文，Server段接受连接后回复ACK报文，并为这次连接分配资源。
 Client端接收到ACK报文后也向Server段发生ACK报文，并分配资源，这样TCP连接就建立了。
-````
+
 Client客户端A   Server服务端B
 总结三次握手过程：
 
@@ -421,7 +415,26 @@ UDP就没有了，udp信息发出后,不验证是否到达对方,所以不可靠
 但是就速度来说，还是UDP协议更高，毕竟其无需重复返回验证，只是一次性的
 
 
-######tcp的阻塞和超时处理机制等等
+###### TCP慢启动、拥塞避免、快速重传、快速恢复 https://blog.csdn.net/itmacar/article/details/12278769
+
+```
+慢启动：
+最初的TCP在连接建立成功后会向网络中发送大量的数据包，这样很容易导致网络中路由器缓存空间耗尽，从而发生拥塞。
+因此新建立的连接不能够一开始就大量发送数据包，而只能根据网络情况逐步增加每次发送的数据量，以避免上述现象的发生
+
+
+拥塞状态
+首先来看TCP是如何确定网络进入了拥塞状态的，TCP认为网络拥塞的主要依据是它重传了一个报文段。
+上面提到过，TCP对每一个报文段都有一个定时器，称为重传定时器(RTO)，当RTO超时且还没有得到数据确认，
+那么TCP就会对该报文段进行重传，当发生超时时，那么出现拥塞的可能性就很大，某个报文段可能在网络中某处丢失，
+并且后续的报文段也没有了消息，在这种情况下，TCP反应比较“强烈”：
+
+超时重传
+说白了就是在请求包发出去的时候，开启一个计时器，当计时器达到时间之后，没有收到ACK，
+则就进行重发请求的操作，一直重发直到达到重发上限次数或者收到ACK。
+```
+
+
 ########TIME_WAIT 
 
 time_wait状态产生的原因\
@@ -597,12 +610,99 @@ HTTP 502 - 网关错误
 HTTP 503：由于超载或停机维护，服务器目前无法使用，一段时间后可能恢复正常
 
 ````
-######谈谈对Volley的理解
 
-######HttpUrlConnection 和 okhttp关系
 
+######HttpUrlConnection 和 okhttp,Volley关系
+```
+HttpUrlConnection
+    实现的比较简单，只支持1.0/1.1 ，并没有上面讲的多路复用，如果碰到app大量网络请求的时候，性能比较差，
+    而且HttpUrlConnection底层也是用Socket来实现的
+    HttpUrlConnection在IO方面用到的是InputStream和OutputStream
+Volley
+    是一个开源库，它只是封装了访问网络的一些操作，但是底层还是使用HttpUrlConnection
+OkHttp
+    是OkHttp在IO方面用的是sink和source，这两个是在Okio这个开源库里的，
+    sink相当于outputStream，source相当于是inputStream。sink和source比InputStream和OutputStream更加强大
+    1、它能实现同一ip和端口的请求重用一个socket，这种方式能大大降低网络连接的时间，和每次请求都建立socket，
+        再断开socket的方式相比，降低了服务器服务器的压力。
+    2、okhttp 对http和https都有良好的支持。
+    3、okhttp 不用担心android版本变换的困扰。
+    4、成熟的网络请求解决方案，比HttpURLConnection更好用。
+
+
+```
 
 
 ######HttpClient和HttpURLConnection的区别 
+```
 在Android 2.2版本之前，HttpClient拥有较少的bug，因此使用它是最好的选择。
+由于HttpClient的API数量过多，使得我们很难在不破坏兼容性的情况下对它进行升级和扩展，
+
 而在Android 2.3版本及以后，HttpURLConnection则是最佳的选择。它的API简单，体积较小
+不过在Android 2.2版本之前，HttpURLConnection一直存在着一些令人厌烦的bug。
+比如说对一个可读的InputStream调用close()方法时，就有可能会导致连接池失效了
+2.2版本之前通常的解决办法就是直接禁用掉连接池的功能
+```
+######谈谈对Volley的理解
+```
+（1）请求队列(RequestQueue)的创建
+    Volley.newRequestQueue(context)方法来获取一个RequestQueue对象
+    创建了CacheDispatcher和4个NetworkDispatcher个对象(处理走网络的请求)，然后分别启动
+    CacheDispatcher通过构造器注入了缓存请求队列(mCacheQueue),网络请求队列（mNetworkQueue）,硬盘缓存对象(DiskBasedCache),结果分发器(mDelivery)
+    NetworkDispatcher除了缓存请求队列没有注入，其他跟CacheDispatcher一样
+    也就是说当调用了Volley.newRequestQueue(context)之后，就会有五个线程一直在后台运行，不断等待网络请求的到来，
+    其中CacheDispatcher是缓存线程，NetworkDispatcher(默认4个)是网络请求线程
+（2）请求的添加 add(Request request)
+    1.将请求加入mCurrentRequests集合
+    2.为请求添加序列号
+    3.判断是否应该缓存请求，如果不需要，加入网络请求队列
+    4.如果有相同请求正在被处理，加入到相同请求等待队列中，否则加入缓存请求队列。
+    通过这一方法，请求就被分发到两个队列中分别供CacheDispatcher和NetworkDispatcher处理。
+（3）请求的处理
+    请求的处理是由CacheDispatcher和NetworkDispatcher来完成的，它们的run方法通过一个死循环不断去从各自的队列中取出请求，
+    进行处理，并将结果交由ResponseDelivery
+    1.走缓存的请求
+        首先从队列中取出请求，看其是否已被取消，若是则返回，否则继续向下走。接着从硬盘缓存中通过缓存的键找到值(Cache.Entry),
+        如果找不到，那么将此请求加入网络请求队列。否则对缓存结果进行过期判断(这个需要请求的页面指定了Cache-Control或者Last-Modified/Expires等字段,
+        并且Cache-Control的优先级比Expires更高。否则请求一定是过期的)，如果过期了，则加入网络请求队列。如果没有过期，
+        那么通过request.parseNetworkResponse方法将硬盘缓存中的数据封装成Response对象（Request的parseNetworkResponse是抽象的，需要复写）。
+        最后进行新鲜度判断，如果不需要刷新，那么调用ResponseDelivery结果分发器的postResponse分发结果。否则先将结果返回，再将请求交给网络请求队列进行刷新
+    2.走网络的请求
+        CacheDispatcher类似，也是构造Response对象，然后交由ResponseDelivery处理，但是这里的Response对象是通过
+        NetworkResponse转化的，而这个NetworkResponse是从网络获取的
+（4）请求结果的分发与处理
+    请求结果的分发处理是由ResponseDelivery实现类ExecutorDelivery完成的，ExecutorDelivery是在RequestQueue的构造器中被创建的，
+    并且绑定了UI线程的Looper:
+    ExecutorDelivery内部有个自定义Executor，它仅仅是封装了Handler，所有待分发的结果最终会通过handler.post方法交给UI线程
+
+一些支线细节
+   （1）请求的取消
+        调用Request#cancel可以取消一个请求。cancel方法很简单，仅将mCanceled变量置为true。
+        而CacheDispatcher/NetworkDispatcher的run方法中在取到一个Request后会判断是否请求取消了:
+   （2）请求队列的终止
+        调用RequestQueue#stop可以终止整个请求队列，并终止缓存请求线程与网络请求线程:
+   （3）ImageLoader
+        ImageLoader是对ImageRequest的封装
+        首先会从缓存中获取如果没有则构造ImageRequest并添加到请求队列
+   （4）关于缓存
+        Volley的CacheDispatcher工作时需要指定缓存策略，这个缓存策略即Cache接口，这个接口有两个实现类，DiskBasedCache和NoCache，
+        默认使用DiskedBasedCache。它会将请求结果存入文件中，以备复用。Volley是一个高度灵活的框架，缓存是可以配置的。
+        甚至你可以使用自己的缓存策略。可惜这个DiskBasedCache很多时候并不能被使用，因为CacheDispatcher即使从缓存文件中拿到了缓存的数据，
+        还需要看该数据是否过期，如果过期，将不使用缓存数据。这就要求服务端的页面可以被缓存，这个是由Cache-Control和Expires等字段决定的，
+        服务端需要设定此字段才能使数据可以被缓存。否则缓存始终是过期的，最终总是走的网络请求。
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+

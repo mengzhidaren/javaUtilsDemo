@@ -6,11 +6,19 @@ package com.yyl;
 public class Demo {
 
     public static void main(String[] args) {
+        int x=5;
 
+        int y=x;
+        x++;
+        System.out.println(y);
+        Integer xx=5;
+        Integer yy=xx;
+        xx++;
+        System.out.println(yy);
 
-        for (int i = 1; i < 10; i++) {
-            System.out.println("i"+i+" "+10%i);
-        }
+//        for (int i = 1; i < 10; i++) {
+//            System.out.println("i"+i+" "+10%i);
+//        }
 
 
     }

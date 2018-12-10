@@ -64,7 +64,7 @@ Thread实现了Runnable接口并进行了扩展，我们通常拿来进行比较
 效果上没区别，写法上的区别而已。
 ####synchronized和ReentrantLock的区别
 ````
-synchronized同步锁 
+    synchronized同步锁 
          synchronized属于悲观锁，直接对区域或者对象加锁，性能稳定，可以使用大部分场景。
     ReentrantLock可重入锁（Lock接口） 
         1. 相对于synchronized更加灵活，可以控制加锁和放锁的位置

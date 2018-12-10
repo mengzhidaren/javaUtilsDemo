@@ -1,6 +1,7 @@
 package com.yyl.array.map;
 
 import java.util.HashSet;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * HashSet 实现了 Set 接口，它不允许集合中有重复的值，当我们提到 HashSet 时，第一件事情就是在将对象存储在 HashSet 之前，
@@ -22,5 +23,7 @@ public class HashSetTest {
 
         HashSet<String> hashSet = new HashSet<>();
         hashSet.add("");
+
+        ConcurrentHashMap map;
     }
 }

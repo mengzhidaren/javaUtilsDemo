@@ -8,8 +8,24 @@ OpenGL ES ：一个嵌入式的（2D/3D）图形处理库
                 void onDrawFrame(GL10 gl);
             }
     第三步： 编写glsl脚本（render）
-    
-OpenSL ES   简单来说是一个嵌入式、跨平台、免费的、音频 处理库。
+
+
+EGL：
+是OpenGL ES和本地窗口系统的接口，不同平台上EGL配置是不一样的，而
+OpenGL的调用方式是一致的，就是说：OpenGL跨平台就是依赖于EGL接口。
+
+为什么要自己创建EGL环境？
+当我们需要把同一个场景渲染到不同的Surface上时，此时系统GLSurfaceView
+就不能满足需求了，所以我们需要自己创建EGL环境来实现渲染操作。
+
+注意：OpenGL整体是一个状态机，通过改变状态就能改变后续的渲染方式，而
+EGLContext（EgL上下文）就保存有所有状态，因此可以通过共享EGLContext
+来实现同一场景渲染到不同的Surface上
+
+
+
+OpenSL ES   
+简单来说是一个嵌入式、跨平台、免费的、音频 处理库。
 
 ```
 ###### 什么是YUV格式？
