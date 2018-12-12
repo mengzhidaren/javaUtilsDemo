@@ -48,7 +48,16 @@ Retrofit就是一个封装了Http请求的框架，底层的网络请求都是�
 ```
 ######  热修复原理
 ```
-
+热修复主要是通过android的类加载机制来实现的。Android中有两个类加载器PathClassLoader和DexClassLoader,
+准确的来说应该是有三个，还有一个BaseDexClassLoader，BaseDexClassLoader是上面这两个类加载器的父类，
+在BaseDexClassLoader里面有一个重要的属性DexPathList，DexPathList在BaseDexClassLoader的构造函数中被创建出来,
+DexPathList里面有两个构造函数SplitDexPath()(将dexPath目录下的所有文件转成一个File集合） 
+和makeDexElments()（将File集合转为Elment数组）， 在这个BaseDexClassLoader里面还有一个特别重要的方法，这也是它的核心方法。 
+findClass()从Elemet数组中拿出一个个dex文件，在从dex文件中搜索class,正因为这个特性，
+我们只需要将Element数组与App原Element数组合并，得到一个新的Element数组，要注意摆放的先后顺序，
+然后将这个新的Element数组用反射的方式赋值给App当前类加载器的pathList中的Elements数组，
+因为pathList的 findClass()是采用遍历方式一个个从Element中找class,而修复好的class所在的Element排在有Bug的class的Element的前面，
+所以，当App再次从类加载器中拿Class时就只会拿到前面的Class,也就是Bug已经修复好的class。这就是热修复的原理
 ```
 ######  内存泄漏如何处理及如何排查，LeakCanary原理
 ```
@@ -73,10 +82,6 @@ Retrofit就是一个封装了Http请求的框架，底层的网络请求都是�
 
 ```
 
-######  MVC,MVP,MVVM架构
-```
-
-```
 ######  anr问题解决方法
 ```
 
