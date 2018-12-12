@@ -1,4 +1,47 @@
 #JVM
+#####字符串常量池
+```
+面试题：String str4 = new String(“abc”) 创建多少个对象？
+1.在常量池中查找是否有“abc”对象
+有则返回对应的引用实例
+没有则创建对应的实例对象
+2.在堆中 new 一个 String("abc") 对象
+3.将对象地址赋值给str4,创建一个引用
+
+
+
+String str1 = new String("A"+"B") ; 会创建多少个对象? 
+字符串常量池："A","B","AB" : 3个
+
+堆：new String("AB") ：1个
+
+引用： str1 ：1个
+
+总共 ： 5个
+String str2 = new String("ABC") + "ABC" ; 会创建多少个对象?
+字符串常量池："ABC" : 1个
+堆：new String("ABC") ：1个
+引用： str2 ：1个
+总共 ： 3个
+
+```
+#####字符串连接有几种方式，它们之间有什么不同等问题；要不就是给一段代码问创建了几个对象
+```
+创建字符串对象的几种形式：
+
+（1）通过new方式如String s = new String("iByteCode")及string.intern()方法
+    对于通过new方式创建的String对象，每次都会在Heap上创建一个新的实例，但是对于字符串字面量的形式，
+        只有当字符串常量池中不存在相同对象时才会创建
+
+（2）通过字面量的形式如String s = "aaaaa"
+    相当于第一种方式中的字面量部分。
+（3）字面量+字面量如String s = "bbbb" + "ccccc"
+    
+（4）字面量+变量如String s1 = "dddd";String s = "eeeee"+s1
+        JVM里面创建了两个字符串字面量dddd和 eeeee 调用StringBuilder对字符串进行连接
+
+```
+
 #####栈和堆的区别 
 
 #####GC怎么知道一个对象要被回收， GC Root 

@@ -3,7 +3,41 @@ a:从MVC的角度考虑(应用程序内)
 b：程序间互通消息(例如在自己的应用程序内监听系统来电)
 c：效率上(参考UDP的广播协议在局域网的方便性)
 d：设计模式上(反转控制的一种应用，类似监听者模式)
+###### MVC 、MVP 和 MVVM 三种架构的区别和优点；
+视图（View）：用户界面。 
+控制器（Controller）：业务逻辑 
+模型（Model）：数据保存
 
+
+MVP 模式将 Controller 改名为 Presenter，同时改变了通信方向。 
+1. 各部分之间的通信，都是双向的。 
+2. View 与 Model 不发生联系，都通过 Presenter 传递。 
+3. View 非常薄，不部署任何业务逻辑，称为”被动视图”（Passive View），即没有任何主动性，而 Presenter非常厚，所有逻辑都部署在那里。
+
+
+MVVM 模式将 Presenter 改名为 ViewModel，基本上与 MVP 模式完全一致。 
+MVVM的问题
+MVVM 的作者 John Gossman 的 批评 应该是最为中肯的。John Gossman 对 MVVM 的批评主要有两点： 
+第一点：数据绑定使得 Bug 很难被调试。你看到界面异常了，有可能是你 View 的代码有 Bug，也可能是 Model 的代码有问题。
+        数据绑定使得一个位置的 Bug 被快速传递到别的位置，要定位原始出问题的地方就变得不那么容易了。 
+第二点：对于过大的项目，数据绑定需要花费更多的内存。
+
+
+
+###### AOP IOC 的好处以及在 Android 开发中的应用；
+AOP 面向切面编程
+OP注解与使用
+@Aspect：声明切面，标记类
+@Pointcut(切点表达式)：定义切点，标记方法
+@Before(切点表达式)：前置通知，切点之前执行
+@Around(切点表达式)：环绕通知，切点前后执行
+@After(切点表达式)：后置通知，切点之后执行
+@AfterReturning(切点表达式)：返回通知，切点方法返回结果之后执行
+@AfterThrowing(切点表达式)：异常通知，切点抛出异常时执行
+
+###### Retrofit 的源码和原理；
+Retrofit就是一个封装了Http请求的框架，底层的网络请求都是使用的Okhttp，
+本身只是简化了用户网络请求的参数配置等，还能与Rxjava相结合，使用起来更加简便。
 ######  插件化（activity如何加载及资源处理）
 ```
 
@@ -70,10 +104,22 @@ d：设计模式上(反转控制的一种应用，类似监听者模式)
 ```
 ######  Asset目录与res目录的区别。 
 ```
+*res/raw和assets的相同点：
+1.两者目录下的文件在打包后会原封不动的保存在apk包中，不会被编译成二进制。
 
+*res/raw和assets的不同点：
+1.res/raw中的文件会被映射到R.java文件中，访问的时候直接使用资源ID即R.id.filename；assets文件夹下的文件不会被映射到R.java中，访问的时候需要AssetManager类。
+2.res/raw不可以有目录结构，而assets则可以有目录结构，也就是assets目录下可以再建立文件夹
 ```
 ######  Android怎么加速启动Activity。 
 ```
+1. 减少onCreate时间
+2. 减少主线程的阻塞时间
+3. 提高Adapter和AdapterView的效率
+4. 优化布局文件
+
+分两种情况，启动应用 和 普通Activity 启动应用 ：Application 的构造方法，onCreate（） 方法中不要进行耗时操作，数据预读取(例如 init 数据) 放在异步中操作 
+启动普通的Activity：A 启动B 时不要在 A 的 onPause（） 中执行耗时操作。因为 B 的 onResume（） 方法必须等待 A 的 onPause（） 执行完成后才能运行
 
 ```
 ######  
