@@ -35,12 +35,68 @@ NIO最核心的三个组件
 ```
 Okio中特有的两个类Source，Sink代表的就是传统的输入流，和输出流
 
+```
+#####数据库手写
+```
+CREATE TABLE table_name (column_name column_type);
+
+清除表内数据，保存表结构，用 truncate。格式为：
+truncate table 表名;
+删除表用 drop，就是啥都没了。格式为：
+drop  table  表名;
+
+delete from 表名 where 删除条件;
+
+INSERT INTO table_name ( field1, field2,...fieldN )
+                       VALUES
+                       ( value1, value2,...valueN );
+
+
+WHERE:
+    SELECT * from table1 WHERE name='菜鸟教程';
+
+    UPDATE table1 SET title="学习 Python" WHERE my_id=3
+
+将 table1 表中获取 author 字段中以 COM 为结尾的的所有记录
+
+    SELECT * from table1  WHERE author LIKE '%COM';
+    
+双表查询
+MySQL UNION 操作符用于连接两个以上的 SELECT 语句的结果组合到一个结果集合中。多个 SELECT 语句会删除重复的数据。
+从 "Websites" 和 "apps" 表中选取所有不同的country（只有不同的值）：
+    SELECT country FROM Websites
+    UNION
+    SELECT country FROM apps
+    ORDER BY country;
+使用 UNION ALL 从 "Websites" 和 "apps" 表中选取所有的country（也有重复的值）：
+    SELECT country FROM Websites
+    UNION ALL
+    SELECT country FROM apps
+    ORDER BY country;
+
+ASC(升序) 或 DESC(降序) 关键字来设置查询结果是按升序或降序排列
+ORDER BY submission_date ASC
+
+联合多表查询
+INNER JOIN（内连接,或等值连接）：获取两个表中字段匹配关系的记录。
+LEFT JOIN（左连接）：获取左表所有记录，即使右表没有对应匹配的记录。
+RIGHT JOIN（右连接）： 与 LEFT JOIN 相反，用于获取右表所有记录，即使左表没有对应匹配的记录。
+
+SELECT a.name, b.age FROM table1 a INNER JOIN table2 b ON a.author = b.author;
+以上 SQL 语句等价于
+SELECT a.name, b.age FROM table1 a, table2 b WHERE a.author = b.author;
+
+
+分组
+SELECT * FROM table1 WHERE column_name operator value GROUP BY column_name;
+
+
+
+
 
 
 
 ```
-
-
 
 
 

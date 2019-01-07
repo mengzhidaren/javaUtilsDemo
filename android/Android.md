@@ -181,9 +181,32 @@ ViewHolder加入一些复杂逻辑，做了一些耗时工作，那么如果View
 接口回调就是指: 可以把使用某一接口的类创建的对象的引用赋给该接口声明的接口变量，那么该接口变量就可以调用被类实现的接口的方法
 
 
+#####设置了"singleTask"启动模式的Activity的特点： 
+1. 设置了"singleTask"启动模式的Activity，它在启动的时候，会先在系统中查找属性值affinity等于它的属性值 taskAffinity的任务存在;
+如果存在这样的任务，它就会在这个任务中启动，否则就会在新任务中启动。
+因此，如果我们想要设置了"singleTask"启动模式的Activity在新的任务中启动，就要为它设置一个独立的taskAffinity属性值。 
+2. 如果设置了"singleTask"启动模式的Activity不是在新的任务中启动时，它会在已有的任务中查看是否已经存在相应的Activity实例，
+如果存在，就会把位于这个Activity实例上面的Activity全部结束掉，即最终这个Activity实例会位于任务的堆栈顶端中。
+
+#####本地广播 和 全局广播
+```
+BroadcastReceiver是针对应用间、应用与系统间、应用内部进行通信的一种方式
+LocalBroadcastReceiver仅在自己的应用内发送接收广播，也就是只有自己的应用能收到，数据更加安全广播只在这个程序里，而且效率更高。
+
+
+BroadcastReceiver 使用
+1.制作intent（可以携带参数）
+2.使用sendBroadcast()传入intent;
+3.制作广播接收器类继承BroadcastReceiver重写onReceive方法（或者可以匿名内部类啥的）
+4.在java中（动态注册）或者直接在Manifest中注册广播接收器（静态注册）使用registerReceiver()传入接收器和intentFilter
+5.取消注册可以在OnDestroy()函数中，unregisterReceiver()传入接收器
+LocalBroadcastReceiver 使用
+LocalBroadcastReceiver不能静态注册，只能采用动态注册的方式。
+在发送和注册的时候采用，LocalBroadcastManager的sendBroadcast方法和registerReceiver方法
 
 
 
+```
 
 
 
