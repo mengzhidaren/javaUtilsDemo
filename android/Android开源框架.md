@@ -1,12 +1,3 @@
-######插件化（activity如何加载及资源处理）
-```
-
-
-
-
-
-```
-
 ######进程划分
 ```
 1、如何查看进程解基本信息
@@ -112,14 +103,6 @@ init.rc中将init进程的oom_adj设置为了-16，已经是永生进程了。
     顾名思义,就是指的不同进程,不同app之间互相唤醒,如你手机里装了支付宝、淘宝、天猫、UC等阿里系的app，
     那么你打开任意一个阿里系的app后，有可能就顺便把其他阿里系的app给唤醒了
 
-
-
-
-
-
-
-
-
 1、jni保活，在5.0以前，android系统本身是不管理jni层的，所以用linux那套fork机制，可以让进程和app分开，
     就算关闭app也不会影响到。所以那时很多人说android非常的卡，幸运的是我那段时间用的ios，这些进程连用户都没法关掉，真的特别恶心
 
@@ -151,11 +134,7 @@ doze就不会再去管你，也就是如果即时通信的话，加doze白名单
 和系统抢时间，这个其实有一定合理性在，但属于是概率性事件了。如果使用JobService拉活activity也是和拉活service 同样的命运，
 毕竟怎么也跑不掉系统调用的killgroup，JobService能拉活完全是可控的故意给你的机会，并不是某些人所说的BUG
 
-
-
 ```
-
-
 ######JobService     JobScheduler
 ```
 JobService是继承自Service的抽象类。
@@ -181,6 +160,108 @@ cancelAll()取消全部作业
     jobScheduler.schedule(builder.build());//将JobInfo加入调度。
 
 ```
+####### 进程保活方案
+
+```
+总结：
+前台进程(Foreground process)
+可见进程(Visible process)
+服务进程(Service process)
+后台进程(Background process)
+空进程(Empty process)
+
+
+
+3.1. 利用 Activity 提升权限
+3.1.1. 方案设计思想
+监控手机锁屏解锁事件，在屏幕锁屏时启动1个像素的 Activity，在用户解锁时将 Activity 销毁掉。注意该 Activity 需设计成用户无感知。
+通过该方案，可以使进程的优先级在屏幕锁屏时间由4提升为最高优先级1。
+适用场景： 本方案主要解决第三方应用及系统管理工具在检测到锁屏事件后一段时间（一般为5分钟以内）内会杀死后台进程，已达到省电的目的问题。
+适用版本： 适用于所有的 Android 版本。
+
+3.2. 利用 Notification 提升权限
+3.2.1. 方案设计思想
+Android 中 Service 的优先级为4，通过 setForeground 接口可以将后台 Service 设置为前台 Service，使进程的优先级由4提升为2，
+从而使进程的优先级仅仅低于用户当前正在交互的进程，与可见进程优先级一致，使进程被杀死的概率大大降低。
+3.2.2. 方案实现挑战
+从 Android2.3 开始调用 setForeground 将后台 Service 设置为前台 Service 时，必须在系统的通知栏发送一条通知，也就是前台 Service 与一条可见的通知
+时绑定在一起的。对于不需要常驻通知栏的应用来说，该方案虽好，但却是用户感知的，无法直接使用。
+3.2.3. 方案挑战应对措施
+通过实现一个内部 Service，在 LiveService 和其内部 Service 中同时发送具有相同 ID 的 Notification，然后将内部 Service 结束掉。
+随着内部 Service 的结束，Notification 将会消失，但系统优先级依然保持为2。
+3.2.4. 方案适用范围
+适用于目前已知所有版本。
+
+4. 进程死后拉活的方案
+4.1. 利用系统广播拉活
+4.1.1. 方案设计思想
+在发生特定系统事件时，系统会发出响应的广播，通过在 AndroidManifest 中“静态”注册对应的广播监听器，即可在发生响应事件时拉活。
+4.1.2. 方案适用范围
+适用于全部 Android 平台。但存在如下几个缺点：
+1） 广播接收器被管理软件、系统软件通过“自启管理”等功能禁用的场景无法接收到广播，从而无法自启。
+2） 系统广播事件不可控，只能保证发生事件时拉活进程，但无法保证进程挂掉后立即拉活。
+因此，该方案主要作为备用手段。
+
+4.2. 利用第三方应用广播拉活
+4.2.1. 方案设计思想
+该方案总的设计思想与接收系统广播类似，不同的是该方案为接收第三方 Top 应用广播。
+通过反编译第三方 Top 应用，如：手机QQ、微信、支付宝、UC浏览器等，以及友盟、信鸽、个推等 SDK，找出它们外发的广播，在应用中进行监听，
+样当这些应用发出广播时，就会将我们的应用拉活。
+4.2.2. 方案适用范围
+该方案的有效程度除与系统广播一样的因素外，主要受如下因素限制：
+1） 反编译分析过的第三方应用的多少
+2） 第三方应用的广播属于应用私有，当前版本中有效的广播，在后续版本随时就可能被移除或被改为不外发。
+这些因素都影响了拉活的效果。
+
+4.3. 利用系统Service机制拉活
+4.3.1. 方案设计思想
+将 Service 设置为 START_STICKY，利用系统机制在 Service 挂掉后自动拉活：
+4.3.2. 方案适用范围
+如下两种情况无法拉活：
+Service 第一次被异常杀死后会在5秒内重启，第二次被杀死会在10秒内重启，第三次会在20秒内重启，一旦在短时间内 Service 被杀死达到5次，则系统不再拉起。
+进程被取得 Root 权限的管理工具或系统工具通过 forestop 停止掉，无法重启。
+
+4.4. 利用Native进程拉活(Android5.0 以下)
+4.4.1. 方案设计思想
+主要思想：利用 Linux 中的 fork 机制创建 Native 进程，在 Native 进程中监控主进程的存活，当主进程挂掉后，在 Native 进程中立即对主进程进行拉活。
+主要原理：在 Android 中所有进程和系统组件的生命周期受 ActivityManagerService 的统一管理。
+而且，通过 Linux 的 fork 机制创建的进程为纯 Linux 进程，其生命周期不受 Android 的管理。
+4.4.3. 方案适用范围
+该方案主要适用于 Android5.0 以下版本手机。
+该方案不受 forcestop 影响，被强制停止的应用依然可以被拉活，在 Android5.0 以下版本拉活效果非常好。
+
+4.5. 利用 JobScheduler 机制拉活
+4.5.1. 方案设计思想
+Android5.0 以后系统对 Native 进程等加强了管理，Native 拉活方式失效。系统在 Android5.0 以上版本提供了 JobScheduler 接口，
+系统会定时调用该进程以使应用进行一些逻辑操作。
+4.5.2. 方案适用范围
+该方案主要适用于 Android5.0 以上版本手机。
+该方案在 Android5.0 以上版本中不受 forcestop 影响，被强制停止的应用依然可以被拉活，在 Android5.0 以上版本拉活效果非常好。
+仅在小米手机可能会出现有时无法拉活的问题。
+
+4.6. 利用账号同步机制拉活
+4.6.1. 方案设计思想
+Android 系统的账号同步机制会定期同步账号进行，该方案目的在于利用同步机制进行进程的拉活
+该方案需要在 AndroidManifest 中定义账号授权与同步服务。
+4.6.2. 方案适用范围
+该方案适用于所有的 Android 版本，包括被 forestop 掉的进程也可以进行拉活。
+最新 Android 版本（Android N）中系统好像对账户同步这里做了变动，该方法不再有效。
+
+5. 其他有效拉活方案
+经研究发现还有其他一些系统拉活措施可以使用，但在使用时需要用户授权，用户感知比较强烈。
+这些方案包括：
+利用系统通知管理权限进行拉活
+利用辅助功能拉活，将应用加入厂商或管理软件白名单。
+这些方案需要结合具体产品特性来搞。
+其他还有一些技术之外的措施，比如说应用内 Push 通道的选择：
+国外版应用：接入 Google 的 GCM。
+国内版应用：根据终端不同，在小米手机（包括 MIUI）接入小米推送、华为手机接入华为推送；其他手机可以考虑接入腾讯信鸽或极光推送与小米推送做 A/B Test。
+
+
+```
+
+
+
 
 ######  Android中App可分配内存的大小
 ```
@@ -198,7 +279,149 @@ heapgrowthlimit就是一个普通应用的内存限制，用ActivityManager.getL
 ```
 
 
+###### 插件化（activity如何加载及资源处理）
+```
+什么是动态加载技术
+动态加载技术就是使用类加载器加载相应的apk、dex、jar(必须含有dex文件)，再通过反射获得该apk、dex、jar内部的资源
+（class、图片、color等等）进而供宿主app使用。
+关于动态加载使用的类加载器
+PathClassLoader - 只能加载已经安装的apk，即/data/app目录下的apk。
+DexClassLoader - 能加载手机中未安装的apk、jar、dex，只要能在找到对应的路径。
 
+插件化技术主要解决两个问题：
+
+2.1 类加载
+代码加载 
+    类的加载可以使用Java的ClassLoader机制，还需要组件生命周期管理。
+
+2.2 单DexClassLoader与多DexClassLoader
+通过给插件apk生成相应的DexClassLoader便可以访问其中的类，
+这边又有两种处理方式，有单DexClassLoader和多DexClassLoader两种结构。
+多DexClassLoader
+    对于每个插件都会生成一个DexClassLoader，当加载该插件中的类时需要通过对应DexClassLoader加载。这样不同插件的类是隔离的，
+    当不同插件引用了同一个类库的不同版本时，不会出问题。RePlugin采用的是该方案。
+单DexClassLoader
+    将插件的DexClassLoader中的pathList合并到主工程的DexClassLoader中。这样做的好处时，可以在不同的插件以及主工程间直接互相调用类和方法，
+    并且可以将不同插件的公共模块抽出来放在一个common插件中直接供其他插件使用。Small采用的是这种方式。
+互相调用
+    插件调用主工程
+        在构造插件的ClassLoader时会传入主工程的ClassLoader作为父加载器，所以插件是可以直接可以通过类名引用主工程的类。
+    主工程调用插件
+        若使用多ClassLoader机制，主工程引用插件中类需要先通过插件的ClassLoader加载该类再通过反射调用其方法。
+        插件化框架一般会通过统一的入口去管理对各个插件中类的访问，并且做一定的限制。
+        
+        若使用单ClassLoader机制，主工程则可以直接通过类名去访问插件中的类。该方式有个弊病，
+        若两个不同的插件工程引用了一个库的不同版本，则程序可能会出错，所以要通过一些规范去避免该情况发生。
+
+
+
+2.3 资源加载   用AssetManager的隐藏方法addAssetPath。
+    因此，只要将插件apk的路径加入到AssetManager中，便能够实现对插件资源的访问。
+    具体实现时，由于AssetManager并不是一个public的类，需要通过反射去创建，并且部分Rom对创建的Resource类进行了修改，
+    所以需要考虑不同Rom的兼容性。
+资源路径的处理
+    和代码加载相似，插件和主工程的资源关系也有两种处理方式
+    合并式：addAssetPath时加入所有插件和主工程的路径
+        合并式由于AssetManager中加入了所有插件和主工程的路径，因此生成的Resource可以同时访问插件和主工程的资源。
+        但是由于主工程和各个插件都是独立编译的，生成的资源id会存在相同的情况，在访问时会产生资源冲突。
+    
+    独立式：各个插件只添加自己apk路径
+        独立式时，各个插件的资源是互相隔离的，不过如果想要实现资源的共享，必须拿到对应的Resource对象。
+资源冲突
+合并式的资源处理方式，会引入资源冲突，原因在于不同插件中的资源id可能相同，所以解决方法就是使得不同的插件资源拥有不同的资源id。
+资源id是由8位16进制数表示，表示为0xPPTTNNNN。PP段用来区分包空间，默认只区分了应用资源和系统资源，TT段为资源类型，NNNN段在同一个APK中从0000递增
+所以思路是修改资源ID的PP段，对于不同的插件使用不同的PP段，从而区分不同插件的资源。
+具体实现方式有两种
+    1.修改aapt源码，编译期修改PP段。
+    2.修改resources.arsc文件，该文件列出了资源id到具体资源路径的映射。
+具体实现可以分别参考Atlas框架和Small框架。推荐第二种方式，不用入侵原有的编译流程。
+
+三、四大组件支持
+
+ Activity的支持是最复杂的 大致分为两种方式：
+    ProxyActivity代理
+    预埋StubActivity，hook系统启动Activity的过程
+3.1 ProxyActivity代理
+    在主工程中放一个ProxyActivy，启动插件中的Activity时会先启动ProxyActivity，在ProxyActivity中创建插件Activity，并同步生命周期
+3.2 hook方式
+如何通过hook的方式启动插件中的Activity，需要解决以下两个问题
+    插件中的Activity没有在AndroidManifest中注册，如何绕过检测。
+    如何构造Activity实例，同步生命周期
+VirtualAPK为例，核心思路如下：
+    先在Manifest中预埋StubActivity，启动时hook上图第1步，将Intent替换成StubActivity。
+    hook第10步，通过插件的ClassLoader反射创建插件Activity\
+    之后Activity的所有生命周期回调都会通知给插件Activity
+3.3 其他组件
+四大组件中Activity的支持是最复杂的，其他组件的实现原理要简单很多，简要概括如下
+Service：Service和Activity的差别在于，Activity的生命周期是由用户交互决定的，而Service的生命周期是我们通过代码主动调用的，
+    且Service实例和manifest中注册的是一一对应的。实现Service插件化的思路是通过在manifest中预埋StubService，
+    hook系统startService等调用替换启动的Service，之后在StubService中创建插件Service，并手动管理其生命周期。
+BroadCastReceiver：解析插件的manifest，将静态注册的广播转为动态注册。
+ContentProvider：类似于Service的方式，对插件ContentProvider的所有调用都会通过一个在manifest中占坑的ContentProvider分发。
+
+
+
+```
+######  DexClassLoader和PathClassLoader的区别
+```
+区别在于调用父类构造器时，DexClassLoader多传了一个optimizedDirectory参数，这个目录必须是内部存储路径，用来缓存系统创建的Dex文件。
+而PathClassLoader该参数为null，只能加载内部存储目录的Dex文件。
+
+DexClassLoader：能够加载未安装的jar/apk/dex 
+PathClassLoader：只能加载系统中已经安装过的apk
+
+ClassLoader调用loadClass方法加载类
+ClassLoader加载类时，先查看自身是否已经加载过该类，如果没有加载过会首先让父加载器去加载，
+如果父加载器无法加载该类时才会调用自身的findClass方法加载，该机制很大程度上避免了类的重复加载
+
+DexClassLoader的DexPathList
+DexClassLoader重载了findClass方法，在加载类时会调用其内部的DexPathList去加载。DexPathList是在构造DexClassLoader时生成的，其内部包含了DexFile
+DexPathList的loadClass会去遍历DexFile直到找到需要加载的类
+有一种热修复技术正是利用了DexClassLoader的加载机制，将需要替换的类添加到dexElements的前面，这样系统会使用先找到的修复过的类。
+
+DexClassLoader是一个可以从包含classes.dex实体的.jar或.apk文件中加载classes的类加载器。可以用于实现dex的动态加载、代码热更新等等。
+这个类加载器必须要一个app的私有、可写目录来缓存经过优化的classes（odex文件），使用Context.getDir(String, int)方法可以创建一个这样的目录，
+例如：
+File dexOutputDir = context.getDir(“dex”, 0);
+
+PathClassLoader提供一个简单的ClassLoader实现，可以操作在本地文件系统的文件列表或目录中的classes，但不可以从网络中加载classes。
+```
+######  热修复原理
+```
+热修复主要是通过android的类加载机制来实现的。Android中有两个类加载器PathClassLoader和DexClassLoader,
+准确的来说应该是有三个，还有一个BaseDexClassLoader，BaseDexClassLoader是上面这两个类加载器的父类，
+public class PathClassLoader extends BaseDexClassLoader{} 
+public class BaseDexClassLoader extends ClassLoader{}
+
+在BaseDexClassLoader里面有一个重要的属性DexPathList，DexPathList在BaseDexClassLoader的构造函数中被创建出来,
+DexPathList里面有两个构造函数SplitDexPath()(将dexPath目录下的所有文件转成一个File集合） 
+和makeDexElments()（将File集合转为Elment数组）， 在这个BaseDexClassLoader里面还有一个特别重要的方法，这也是它的核心方法。 
+findClass()从Elemet数组中拿出一个个dex文件，在从dex文件中搜索class,正因为这个特性，
+我们只需要将Element数组与App原Element数组合并，得到一个新的Element数组，要注意摆放的先后顺序，
+然后将这个新的Element数组用反射的方式赋值给App当前类加载器的pathList中的Elements数组，
+因为pathList的 findClass()是采用遍历方式一个个从Element中找class,而修复好的class所在的Element排在有Bug的class的Element的前面，
+所以，当App再次从类加载器中拿Class时就只会拿到前面的Class,也就是Bug已经修复好的class。这就是热修复的原理
+```
+######
+```
+
+```
+######
+```
+
+```
+######
+```
+
+```
+######
+```
+
+```
+######
+```
+
+```
 
 
 
