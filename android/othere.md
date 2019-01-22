@@ -99,15 +99,26 @@ SELECT * FROM table1 WHERE column_name operator value GROUP BY column_name;
 ```
 ###### git
 ```
-
-
-
-remote branches
+local branches                          本地分支列表
     master
-        checkout as...
-        compare with...
-        rebase current onto selected
-        merge into current 
+        checkout                        检出这个分支
+        checkout as...                  使用这个分支创建新的分支并检出到新分支。
+            
+        compare with...                 使用当前分支与所选分支做代码提交比较。
+        
+        rebase current onto selected    在当前分支做变基。（将所选分支提交加入到当前分支）
+        checkout with rebase            检出所选分支并做变基。（将当前分支提交加入到所选分支）
+        merge into current              合并到当前分支（将所选分支合并到当前分支）
+        
+        rename
+        delete
+
+remote branches                 远程分支列表。
+    master
+        checkout as...                  使用远程分支创建一个新的本地分支，并检出这个分支。
+        compare with...                 使用当前分支与所选分支做代码提交比较。
+        rebase current onto selected    在当前分支做变基。（将所选分支提交加入到当前分支）
+        merge into current              合并分支（将当前分支与所选分支进行合并）
         delete
         
 
