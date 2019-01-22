@@ -106,9 +106,9 @@ local branches                          本地分支列表
             
         compare with...                 使用当前分支与所选分支做代码提交比较。
         
-        rebase current onto selected    在当前分支做变基。（将所选分支提交加入到当前分支）
-        checkout with rebase            检出所选分支并做变基。（将当前分支提交加入到所选分支）
-        merge into current              合并到当前分支（将所选分支合并到当前分支）
+        rebase current onto selected    在当前分支做变基。（将所选分支提交加入到当前分支） （就是把你选择的分支合并到当前分支）
+        checkout with rebase            检出所选分支并做变基。（将当前分支提交加入到所选分支）  
+        merge into current              合并到当前分支（将所选分支合并到当前分支）    
         
         rename
         delete
@@ -121,7 +121,24 @@ remote branches                 远程分支列表。
         merge into current              合并分支（将当前分支与所选分支进行合并）
         delete
         
-1111111111111111111111
+        
+        
+https://blog.csdn.net/Rflyee/article/details/79362381        
+区别：
+(1) Rebase Current onto Selected：把当前分支变基到被选择的分支上；
+(2) Checkout with Rebase：把被选择的分支checkout出来变基到当前分支。
+
+git merge b     将b分支合并到当前分支
+git rebase b    也是把 b分支合并到当前分支
+
+git merge 合并后的节点会按照commit时间顺序排列。 
+git merge操作会在当前分支上生成一个新的commit节点，并保留所有的操作历史节点，对问题的追溯很有益处，但是会产生大量无用commit节点，使提交历史记录很冗长
+
+rebase操作后的历史并不会按commit时间顺序排列。 
+rebase操作会找出当前分支（feature）的所有修改点，并将其生产一系列布丁（4-6-8）；
+    然后以被rebase分支（hotfix）最后一个节点（9）为开始点，将feature上生成的布丁应用到hotfix上（1-2-3-5-7-9-4-6-8）。 
+如上描述，rebase操作能使提交历史更干净美观，可忽略很多不必要的节点；但是这样等同于重写commit历史记录，可追溯性较差
+
 ```
 
 
