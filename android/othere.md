@@ -97,7 +97,21 @@ SELECT * FROM table1 WHERE column_name operator value GROUP BY column_name;
 
 
 ```
+###### git
+```
 
+
+
+remote branches
+    master
+        checkout as...
+        compare with...
+        rebase current onto selected
+        merge into current 
+        delete
+        
+
+```
 
 
 

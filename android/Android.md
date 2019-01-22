@@ -341,8 +341,10 @@ LocalBroadcastReceiver不能静态注册，只能采用动态注册的方式。
 
 
 ```
-######  
+######  activity启动模式
 ```
+activity启动模式及应用场景：重点是问singleInstance的模式下是否新启动一个task，
+别的应用启动这个activity在哪个task里以及跳转到别的页面如何跳转回来?
 
 ```
 ######  
