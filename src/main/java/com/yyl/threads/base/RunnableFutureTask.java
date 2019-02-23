@@ -23,7 +23,7 @@ public class RunnableFutureTask {
     /**
      * @param args
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         runnableDemo();
         futureDemo();
     }
@@ -31,15 +31,22 @@ public class RunnableFutureTask {
     /**
      * runnable, 无返回值
      */
-    static void runnableDemo() {
+    static void runnableDemo() throws InterruptedException {
 
-        new Thread(new Runnable() {
+      Thread thread=  new Thread(new Runnable() {
 
             @Override
             public void run() {
                 System.out.println("runnable demo : " + fibc(20));
             }
-        }).start();
+        });
+
+        thread.start();
+        Thread.sleep(500);
+
+            System.out.println("2222");
+        thread.start();
+
     }
 
     /**
